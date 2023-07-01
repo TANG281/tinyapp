@@ -10,6 +10,18 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const generateRandomString = (length) => {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+//Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -44,14 +56,19 @@ app.get("/urls/:id", (req, res) => {
     username: req.cookies.username,
     id: id,
     longURL: longURL };
-  res.render("urls_show", templateVars);
-});
-
-app.get("/u/:id", (req, res) => {
-  const id = req.params.id;
-  const longURL = urlDatabase[id];
-  res.redirect(longURL);
-});
+    res.render("urls_show", templateVars);
+  });
+  
+  app.get("/u/:id", (req, res) => {
+    const id = req.params.id;
+    const longURL = urlDatabase[id];
+    res.redirect(longURL);
+  });
+  
+  app.get("/register", (req, res) => {
+  const templateVars = { username: req.cookies.username };
+  res.render("urls_register", templateVars);
+})
 
 app.post("/urls", (req, res) => {
   const newId = generateRandomString(6);
@@ -81,18 +98,8 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 })
 
-const generateRandomString = (length) => {
-  let result = '';
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
 
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
+  console.log(`TinyApp listening on port ${PORT}`);
 });
