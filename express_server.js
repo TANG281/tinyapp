@@ -60,8 +60,13 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   urlDatabase[id] = req.body.longURL;
   res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username)
   
-})
+  res.redirect("/urls");
+});
 
 const generateRandomString = (length) => {
   let result = '';
