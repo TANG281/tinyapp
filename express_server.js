@@ -40,7 +40,7 @@ app.get("/urls/:id", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);
-  res.send("Ok");
+  res.send(generateRandomString(6));
 });
 
 const generateRandomString = (length) => {
