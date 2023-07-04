@@ -18,9 +18,12 @@
         </button>
       </form>
     <% } else { %>
-      <form method="POST" action="/login">
-        <input type="text" name="user_id" />
+      <form method="GET" action="/login">
         <button type="submit" class="btn btn-outline-dark">Login
+        </button>
+      </form>
+      <form method="GET" action="/register">
+        <button type="submit" class="btn btn-outline-dark">Register
         </button>
       </form>
     <% } %>
