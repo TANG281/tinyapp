@@ -40,12 +40,12 @@ const getUserByEmail = (email, users) => {
   return null;
 };
 
-//MIDDELWARE
+// MIDDELWARE
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-//GET ROUTES
+// GET ROUTES
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -54,7 +54,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-//Temporary code to check user object
+// Temporary code to check user object
 app.get("/users.json", (req, res) => {
   res.json(users);
 });
@@ -106,7 +106,15 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
-//POST ROUTES
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user_id: req.cookies.user_id,
+    users
+  };
+  res.render("urls_login", templateVars);
+});
+
+// POST ROUTES
 app.post("/urls", (req, res) => {
   const newId = generateRandomString(6);
   urlDatabase[newId] = req.body.longURL;
