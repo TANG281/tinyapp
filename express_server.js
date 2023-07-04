@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const morgan = require('morgan');
 const app = express();
 const PORT = 8080;
 
@@ -42,6 +43,7 @@ const getUserByEmail = (email, users) => {
 //MIDDELWARE
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan('dev'));
 
 //GET ROUTES
 app.get("/", (req, res) => {
