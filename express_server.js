@@ -1,10 +1,10 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const morgan = require('morgan');
+const { generateRandomString, getUserByEmail } = require("./helper");
 const app = express();
 const PORT = 8080;
 
-app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -12,33 +12,14 @@ const urlDatabase = {
 };
 
 const users = {
-  pikachu: {
-    id: "pikachu",
-    email: "pikachu@pokemon.com",
-    password: "pikapika"
+  admin: {
+    id: "admin",
+    email: "admin@example.com",
+    password: "0000"
   }
 };
 
-//HELPER FUNCTION
-const generateRandomString = (length) => {
-  let result = '';
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
-
-const getUserByEmail = (email, users) => {
-  for (const id in users) {
-    if (users[id].email === email) {
-      return users[id];
-    }
-  }
-  return null;
-};
+app.set("view engine", "ejs");
 
 // MIDDELWARE
 app.use(express.urlencoded({ extended: true }));
@@ -52,11 +33,6 @@ app.get("/", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-// Temporary code to check user object
-app.get("/users.json", (req, res) => {
-  res.json(users);
 });
 
 app.get("/hello", (req, res) => {
@@ -137,11 +113,14 @@ app.post("/login", (req, res) => {
   const inputEmail = req.body.email;
   const inputPassword = req.body.password;
   const foundUser = getUserByEmail(inputEmail, users);
+  if (inputEmail === "" || inputPassword === "") {
+    return res.status(400).send('Email and/or Password cannot be blank!');
+  }
   if (!foundUser) {
     return res.status(400).send(`${inputEmail} has not been registered!`);
   }
   if (inputPassword !== foundUser.password) {
-    return res.status(401).send('Incorrect password!')
+    return res.status(401).send('Incorrect password!');
   }
   res.cookie("user_id", foundUser.id);
   res.redirect("/urls");
