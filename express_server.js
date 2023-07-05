@@ -49,10 +49,14 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  const user_id = req.cookies.user_id;
   const templateVars = {
     user_id: req.cookies.user_id,
     users
   };
+  if (!user_id) {
+    res.redirect("/login");
+  }
   res.render("urls_new", templateVars);
 });
 
@@ -71,28 +75,43 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
+  if (!longURL) {
+    return res.status(400).send(`Invalid request!`);
+  }
   res.redirect(longURL);
 });
 
 app.get("/register", (req, res) => {
+  const user_id = req.cookies.user_id;
   const templateVars = {
-    user_id: req.cookies.user_id,
+    user_id: user_id,
     users
   };
+  if (user_id) {
+    res.redirect("/urls");
+  }
   res.render("urls_register", templateVars);
 });
 
 app.get("/login", (req, res) => {
+  const user_id = req.cookies.user_id;
   const templateVars = {
-    user_id: req.cookies.user_id,
+    user_id: user_id,
     users
   };
+  if (user_id) {
+    res.redirect("/urls");
+  }
   res.render("urls_login", templateVars);
 });
 
 // POST ROUTES
 app.post("/urls", (req, res) => {
   const newId = generateRandomString(6);
+  const user_id = req.cookies.user_id;
+  if (!user_id) {
+    return res.send('Member exclusive feature, please login to use!');
+  }
   urlDatabase[newId] = req.body.longURL;
   res.redirect(`/urls/${newId}`);
 });
