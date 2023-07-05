@@ -52,9 +52,11 @@ app.get("/urls", (req, res) => {
     users,
     urls: urlDatabase
   };
+  /* Render welcome page if user is no logged in */
   if (!user_id) {
     return res.render("urls_welcome", templateVars);
   }
+  /* Render index page with list of shorten URL */
   res.render("urls_index", templateVars);
 });
 
