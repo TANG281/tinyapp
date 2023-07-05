@@ -5,7 +5,7 @@ const { generateRandomString, getUserByEmail } = require("./helper");
 const app = express();
 const PORT = 8080;
 
-
+// DATABASE
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -54,6 +54,7 @@ app.get("/urls/new", (req, res) => {
     user_id: req.cookies.user_id,
     users
   };
+  /* Login required to use the create new short URL feature, redirect to /login if not logged in */
   if (!user_id) {
     res.redirect("/login");
   }
@@ -75,6 +76,7 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
+  /* Error message for non-exist short URL */
   if (!longURL) {
     return res.status(400).send(`Invalid request!`);
   }
@@ -87,6 +89,7 @@ app.get("/register", (req, res) => {
     user_id: user_id,
     users
   };
+  /* Redirect user the /urls if they are logged in */
   if (user_id) {
     res.redirect("/urls");
   }
@@ -99,6 +102,7 @@ app.get("/login", (req, res) => {
     user_id: user_id,
     users
   };
+  /* Redirect user the /urls if they are logged in */
   if (user_id) {
     res.redirect("/urls");
   }
@@ -109,6 +113,7 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const newId = generateRandomString(6);
   const user_id = req.cookies.user_id;
+  /* Error message if user is not logged in */
   if (!user_id) {
     return res.send('Member exclusive feature, please login to use!');
   }
@@ -132,6 +137,7 @@ app.post("/login", (req, res) => {
   const inputEmail = req.body.email;
   const inputPassword = req.body.password;
   const foundUser = getUserByEmail(inputEmail, users);
+  /* Error messages for invalid login scenarios */
   if (inputEmail === "" || inputPassword === "") {
     return res.status(400).send('Email and/or Password cannot be blank!');
   }
@@ -141,6 +147,7 @@ app.post("/login", (req, res) => {
   if (inputPassword !== foundUser.password) {
     return res.status(401).send('Incorrect password!');
   }
+/* Set cookie for user using their id and redirect to /url */
   res.cookie("user_id", foundUser.id);
   res.redirect("/urls");
 });
@@ -151,31 +158,27 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const newId = generateRandomString(5);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
   const foundUser = getUserByEmail(newEmail, users);
-
+  /* Error messages for invalid register scenarios */
   if (newEmail === "" || newPassword === "") {
     return res.status(400).send('Email and/or Password cannot be blank!');
   }
-
   if (foundUser) {
     return res.status(400).send(`User with email ${newEmail} already exist!`);
   }
-
+  /* Generate new user_id and add the user to database */
+  const newId = generateRandomString(5);
   users[newId] = {
     id: newId,
     email: newEmail,
     password: newPassword
   };
-
+  /* Set cookie for user using their newly registered id and redirect to /urls */
   res.cookie("user_id", newId);
-  console.log(users);
   res.redirect("/urls");
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}`);
