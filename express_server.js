@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const morgan = require('morgan');
+const bcrypt = require('bcryptjs');
 const { generateRandomString, getUserByEmail } = require("./helper");
 const app = express();
 const PORT = 8080;
@@ -21,7 +22,7 @@ const users = {
   admin: {
     id: "admin",
     email: "admin@example.com",
-    password: "0000"
+    password: bcrypt.hashSync("0000", 10)
   }
 };
 
@@ -39,6 +40,10 @@ app.get("/", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+app.get("/users", (req, res) => {
+  res.json(users);
 });
 
 app.get("/hello", (req, res) => {
@@ -129,6 +134,8 @@ app.get("/login", (req, res) => {
 });
 
 // POST ROUTES
+
+/* Create new short URL */
 app.post("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   /* Error message if user is not logged in */
@@ -193,19 +200,21 @@ app.post("/login", (req, res) => {
   if (!foundUser) {
     return res.status(400).send(`${inputEmail} has not been registered!`);
   }
-  if (inputPassword !== foundUser.password) {
+  if (!bcrypt.compareSync(inputPassword, foundUser.password)) {
     return res.status(401).send('Incorrect password!');
   }
-  /* Set cookie for user using their id and redirect to /url */
+  /* On successfull log in, set cookie for user using their id and redirect to /url */
   res.cookie("user_id", foundUser.id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
+  /* Clear user_id cookies on logout and redirect user to login page */
   res.clearCookie("user_id");
   res.redirect("/login");
 });
 
+/* Create new account */
 app.post("/register", (req, res) => {
   const newEmail = req.body.email;
   const newPassword = req.body.password;
@@ -217,12 +226,12 @@ app.post("/register", (req, res) => {
   if (foundUser) {
     return res.status(400).send(`User with email ${newEmail} already exist!`);
   }
-  /* Generate new user_id and add the user to database */
+  /* Generate new account and add it to database */
   const newId = generateRandomString(5);
   users[newId] = {
     id: newId,
     email: newEmail,
-    password: newPassword
+    password: bcrypt.hashSync(newPassword, 10)
   };
   /* Set cookie for user using their newly registered id and redirect to /urls */
   res.cookie("user_id", newId);
