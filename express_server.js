@@ -2,7 +2,7 @@ const express = require("express");
 const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
-const { generateRandomString, getUserByEmail } = require("./helper");
+const { generateRandomString, getUserByEmail } = require("./helpers");
 const app = express();
 const PORT = 8080;
 
