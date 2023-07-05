@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const { generateRandomString, getUserByEmail } = require("./helper");
@@ -30,8 +30,12 @@ app.set("view engine", "ejs");
 
 // MIDDELWARE
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(morgan('dev'));
+app.use(cookieSession({
+  name: 'user_id',
+  keys: ['nindoking', 'dragonite', 'crobat'],
+  maxAge: 24 * 60 * 60 * 1000 // Cookies expire in 24 hours
+}));
 
 // GET ROUTES
 app.get("/", (req, res) => {
@@ -51,7 +55,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = {
     user_id,
     users,
@@ -67,9 +71,9 @@ app.get("/urls", (req, res) => {
 
 /* Create new short URL */
 app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = {
-    user_id: req.cookies.user_id,
+    user_id: req.session.user_id,
     users
   };
   /* Login required to use the create new short URL feature, redirect to /login if not logged in */
@@ -80,11 +84,11 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const id = req.params.id;
   const longURL = urlDatabase[id].longURL;
   const templateVars = {
-    user_id: req.cookies.user_id,
+    user_id: req.session.user_id,
     users,
     id,
     longURL
@@ -108,7 +112,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = {
     user_id: user_id,
     users
@@ -121,7 +125,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = {
     user_id: user_id,
     users
@@ -137,7 +141,7 @@ app.get("/login", (req, res) => {
 
 /* Create new short URL */
 app.post("/urls", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   /* Error message if user is not logged in */
   if (!user_id) {
     return res.send('Member exclusive feature, please login to use!');
@@ -153,7 +157,7 @@ app.post("/urls", (req, res) => {
 
 /* Delete short URL */
 app.post("/urls/:id/delete", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const id = req.params.id;
   /* Error messages for unauthorized access */
   if (!user_id) {
@@ -172,7 +176,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 /* Update long URL for exist short URL */
 app.post("/urls/:id", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const id = req.params.id;
   urlDatabase[id].longURL = req.body.longURL;
   /* Error messages for unauthorized access */
@@ -198,19 +202,19 @@ app.post("/login", (req, res) => {
     return res.status(400).send('Email and/or Password cannot be blank!');
   }
   if (!foundUser) {
-    return res.status(400).send(`${inputEmail} has not been registered!`);
+    return res.status(400).send('Incorrect email/password!');
   }
   if (!bcrypt.compareSync(inputPassword, foundUser.password)) {
-    return res.status(401).send('Incorrect password!');
+    return res.status(401).send('Incorrect email/password!');
   }
-  /* On successfull log in, set cookie for user using their id and redirect to /url */
-  res.cookie("user_id", foundUser.id);
+  /* On successfull log in, set cookies for user using their id and redirect to /url */
+  req.session.user_id = foundUser.id;
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   /* Clear user_id cookies on logout and redirect user to login page */
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -234,7 +238,7 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(newPassword, 10)
   };
   /* Set cookie for user using their newly registered id and redirect to /urls */
-  res.cookie("user_id", newId);
+  req.session.user_id = newId;
   res.redirect("/urls");
 });
 
