@@ -46,11 +46,15 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const user_id = req.cookies.user_id;
   const templateVars = {
-    user_id: req.cookies.user_id,
+    user_id,
     users,
     urls: urlDatabase
   };
+  if (!user_id) {
+    return res.render("urls_welcome", templateVars);
+  }
   res.render("urls_index", templateVars);
 });
 
@@ -129,7 +133,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[newId] = {
     longURL: req.body.longURL,
     user_id
-  }
+  };
   res.redirect(`/urls/${newId}`);
 });
 
