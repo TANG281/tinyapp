@@ -19,6 +19,7 @@ const getUserByEmail = (email, users) => {
   return null;
 };
 
-const urlsForUser = (id,database) => {} 
-
-module.exports = { generateRandomString, getUserByEmail };
+module.exports = { 
+  generateRandomString,
+  getUserByEmail
+};
