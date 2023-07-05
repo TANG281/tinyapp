@@ -7,8 +7,14 @@ const PORT = 8080;
 
 // DATABASE
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    user_id: "admin"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    user_id: "admin"
+  }
 };
 
 const users = {
@@ -48,6 +54,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+/* Create new short URL */
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = {
@@ -63,7 +70,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id].longURL;
   const templateVars = {
     user_id: req.cookies.user_id,
     users,
@@ -73,9 +80,10 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+/* Redirect user to the long URL */
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id].longURL;
   /* Error message for non-exist short URL */
   if (!longURL) {
     return res.status(400).send(`Invalid request!`);
@@ -111,25 +119,31 @@ app.get("/login", (req, res) => {
 
 // POST ROUTES
 app.post("/urls", (req, res) => {
-  const newId = generateRandomString(6);
   const user_id = req.cookies.user_id;
   /* Error message if user is not logged in */
   if (!user_id) {
     return res.send('Member exclusive feature, please login to use!');
   }
-  urlDatabase[newId] = req.body.longURL;
+  /* Generate new shortURL and add it to the database */
+  const newId = generateRandomString(6);
+  urlDatabase[newId] = {
+    longURL: req.body.longURL,
+    user_id
+  }
   res.redirect(`/urls/${newId}`);
 });
 
+/* Delete short URL */
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect("/urls");
 });
 
+/* Update long URL for exist short URL */
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  urlDatabase[id] = req.body.longURL;
+  urlDatabase[id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -147,7 +161,7 @@ app.post("/login", (req, res) => {
   if (inputPassword !== foundUser.password) {
     return res.status(401).send('Incorrect password!');
   }
-/* Set cookie for user using their id and redirect to /url */
+  /* Set cookie for user using their id and redirect to /url */
   res.cookie("user_id", foundUser.id);
   res.redirect("/urls");
 });
