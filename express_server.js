@@ -134,13 +134,22 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.user_id);
+  const inputEmail = req.body.email;
+  const inputPassword = req.body.password;
+  const foundUser = getUserByEmail(inputEmail, users);
+  if (!foundUser) {
+    return res.status(400).send(`${inputEmail} has not been registered!`);
+  }
+  if (inputPassword !== foundUser.password) {
+    return res.status(401).send('Incorrect password!')
+  }
+  res.cookie("user_id", foundUser.id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
