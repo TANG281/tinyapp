@@ -75,14 +75,19 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  const user_id = req.cookies.user_id;
   const id = req.params.id;
   const longURL = urlDatabase[id].longURL;
   const templateVars = {
     user_id: req.cookies.user_id,
     users,
-    id: id,
-    longURL: longURL
+    id,
+    longURL
   };
+
+  if (urlDatabase[id]["user_id"] !== user_id) {
+    return res.status(403).send('Unauthorized access!');
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -141,15 +146,39 @@ app.post("/urls", (req, res) => {
 
 /* Delete short URL */
 app.post("/urls/:id/delete", (req, res) => {
+  const user_id = req.cookies.user_id;
   const id = req.params.id;
+  /* Error messages for unauthorized access */
+  if (!user_id) {
+    return res.status(403).send('Login required.');
+  }
+  if (user_id !== urlDatabase[id].user_id) {
+    return res.status(401).send('Unauthorized!');
+  }
+  /* Error message if the short URL is not in database */
+  if (!urlDatabase[id]) {
+    return res.status(404).send('Not Found!');
+  }
   delete urlDatabase[id];
   res.redirect("/urls");
 });
 
 /* Update long URL for exist short URL */
 app.post("/urls/:id", (req, res) => {
+  const user_id = req.cookies.user_id;
   const id = req.params.id;
   urlDatabase[id].longURL = req.body.longURL;
+  /* Error messages for unauthorized access */
+  if (!user_id) {
+    return res.status(403).send('Login required.');
+  }
+  if (user_id !== urlDatabase[id].user_id) {
+    return res.status(401).send('Unauthorized!');
+  }
+  /* Error message if the short URL is not in database */
+  if (!urlDatabase[id]) {
+    return res.status(404).send('Not Found!');
+  }
   res.redirect("/urls");
 });
 
