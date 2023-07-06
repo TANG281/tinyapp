@@ -4,28 +4,9 @@ const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const { generateRandomString, getUserByEmail } = require("./helpers");
+const { urlDatabase, users } = require('./database');
 const app = express();
 const PORT = 8080;
-
-// DATABASE
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    user_id: "admin"
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    user_id: "admin"
-  }
-};
-
-const users = {
-  admin: {
-    id: "admin",
-    email: "admin@example.com",
-    password: bcrypt.hashSync("0000", 10)
-  }
-};
 
 app.set("view engine", "ejs");
 
@@ -92,7 +73,7 @@ app.get("/urls/:id", (req, res) => {
   if (!user_id) {
     return res.status(403).send("Login required!")
   }
-  if (urlDatabase[id]["user_id"] !== user_id) {
+  if (urlDatabase[id].user_id !== user_id) {
     return res.status(401).send('Unauthorized access!');
   }
   res.render("urls_show", templateVars);
