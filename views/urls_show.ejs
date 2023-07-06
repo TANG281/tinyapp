@@ -22,7 +22,7 @@
             <%= id %>
           </a>
         </p>
-        <form method="POST" action="/urls/<%= id %>">
+        <form method="POST" action="/urls/<%= id %>?_method=PUT">
           <h5>EDIT</h5>
           <label for="longURL">New URL:</label>
           <input type="text" name="longURL" placeholder="http://" />

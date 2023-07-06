@@ -1,4 +1,5 @@
-const express = require("express");
+const express = require('express');
+const methodOverride = require('method-override');
 const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
@@ -30,11 +31,12 @@ app.set("view engine", "ejs");
 
 // MIDDELWARE
 app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 app.use(morgan('dev'));
 app.use(cookieSession({
   name: 'user_id',
   keys: ['nindoking', 'dragonite', 'crobat'],
-  maxAge: 24 * 60 * 60 * 1000 // Cookies expire in 24 hours
+  maxAge: 30 * 60 * 1000 // Cookies expire in 30 minutes
 }));
 
 // GET ROUTES
@@ -156,7 +158,7 @@ app.post("/urls", (req, res) => {
 });
 
 /* Delete short URL */
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const id = req.params.id;
   /* Error messages for unauthorized access */
@@ -175,7 +177,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 /* Update long URL for exist short URL */
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const id = req.params.id;
   urlDatabase[id].longURL = req.body.longURL;
