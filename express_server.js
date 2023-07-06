@@ -69,6 +69,10 @@ app.get("/urls/:id", (req, res) => {
     id,
     longURL
   };
+  /* Error message for non-exist short URL */
+  if (!urlDatabase[id]) {
+    return res.status(400).send(`Invalid request!`);
+  }
   /* Error messages for unauthorized access */
   if (!user_id) {
     return res.status(403).send("Login required!")
@@ -84,7 +88,7 @@ app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id].longURL;
   /* Error message for non-exist short URL */
-  if (!longURL) {
+  if (!urlDatabase[id]) {
     return res.status(400).send(`Invalid request!`);
   }
   res.redirect(longURL);
