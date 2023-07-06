@@ -41,19 +41,11 @@ app.use(cookieSession({
 
 // GET ROUTES
 app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/users", (req, res) => {
-  res.json(users);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  const user_id = req.session.user_id;
+  if (!user_id) {
+    res.redirect("/login");
+  }
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
@@ -71,7 +63,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-/* Create new short URL */
+/* New short URL form */
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = {
@@ -85,6 +77,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+/* Edit form for individual short URL */
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const id = req.params.id;
@@ -95,9 +88,12 @@ app.get("/urls/:id", (req, res) => {
     id,
     longURL
   };
-
+  /* Error messages for unauthorized access */
+  if (!user_id) {
+    return res.status(403).send("Login required!")
+  }
   if (urlDatabase[id]["user_id"] !== user_id) {
-    return res.status(403).send('Unauthorized access!');
+    return res.status(401).send('Unauthorized access!');
   }
   res.render("urls_show", templateVars);
 });
@@ -113,6 +109,7 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+/* Registration page */
 app.get("/register", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = {
@@ -126,6 +123,7 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+/* Login page */
 app.get("/login", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = {
@@ -180,7 +178,6 @@ app.delete("/urls/:id", (req, res) => {
 app.put("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const id = req.params.id;
-  urlDatabase[id].longURL = req.body.longURL;
   /* Error messages for unauthorized access */
   if (!user_id) {
     return res.status(403).send('Login required.');
@@ -192,9 +189,11 @@ app.put("/urls/:id", (req, res) => {
   if (!urlDatabase[id]) {
     return res.status(404).send('Not Found!');
   }
+  urlDatabase[id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
+/* Login user */
 app.post("/login", (req, res) => {
   const inputEmail = req.body.email;
   const inputPassword = req.body.password;
@@ -214,6 +213,7 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+/* Logout user */
 app.post("/logout", (req, res) => {
   /* Clear user_id cookies on logout and redirect user to login page */
   req.session = null;
@@ -230,7 +230,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send('Email and/or Password cannot be blank!');
   }
   if (foundUser) {
-    return res.status(400).send(`User with email ${newEmail} already exist!`);
+    return res.status(400).send(`User already exist!`);
   }
   /* Generate new account and add it to database */
   const newId = generateRandomString(5);
