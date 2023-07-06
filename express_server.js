@@ -55,20 +55,21 @@ app.get("/urls/new", (req, res) => {
   if (!user_id) {
     res.redirect("/login");
   }
+
   res.render("urls_new", templateVars);
 });
 
 /* Edit form for individual short URL */
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
-  const id = req.params.id;
-  const longURL = urlDatabase[id].longURL;
+  const id = req.params.id;  
   const templateVars = {
     user_id: req.session.user_id,
     users,
     id,
-    longURL
+    urlDatabase
   };
+  
   /* Error message for non-exist short URL */
   if (!urlDatabase[id]) {
     return res.status(400).send(`Invalid request!`);
@@ -80,18 +81,20 @@ app.get("/urls/:id", (req, res) => {
   if (urlDatabase[id].user_id !== user_id) {
     return res.status(401).send('Unauthorized access!');
   }
+
   res.render("urls_show", templateVars);
 });
 
 /* Redirect user to the long URL */
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id].longURL;
+  
   /* Error message for non-exist short URL */
   if (!urlDatabase[id]) {
     return res.status(400).send(`Invalid request!`);
   }
-  res.redirect(longURL);
+  
+  res.redirect(urlDatabase[id].longURL);
 });
 
 /* Registration page */
