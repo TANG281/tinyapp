@@ -24,7 +24,7 @@ app.use(cookieSession({
 app.get("/", (req, res) => {
   const user_id = req.session.user_id;
   if (!user_id) {
-    res.redirect("/login");
+    return res.redirect("/login");
   }
   res.redirect("/urls");
 });
@@ -53,7 +53,7 @@ app.get("/urls/new", (req, res) => {
   };
   /* Login required to use the create new short URL feature, redirect to /login if not logged in */
   if (!user_id) {
-    res.redirect("/login");
+    return res.redirect("/login");
   }
 
   res.render("urls_new", templateVars);
@@ -106,7 +106,7 @@ app.get("/register", (req, res) => {
   };
   /* Redirect user the /urls if they are logged in */
   if (user_id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   res.render("urls_register", templateVars);
 });
@@ -120,7 +120,7 @@ app.get("/login", (req, res) => {
   };
   /* Redirect user the /urls if they are logged in */
   if (user_id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   res.render("urls_login", templateVars);
 });
