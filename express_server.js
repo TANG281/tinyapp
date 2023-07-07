@@ -132,7 +132,7 @@ app.post("/urls", (req, res) => {
   const user_id = req.session.user_id;
   /* Error message if user is not logged in */
   if (!user_id) {
-    return res.send('Member exclusive feature, please login to use!');
+    return res.status(400).send('Member exclusive feature, please login to use!');
   }
   /* Generate new shortURL and add it to the database */
   const newId = generateRandomString(6);
